@@ -92,6 +92,63 @@ paths:
                 required:
                   - success
                   - error
+    delete:
+      summary: Delete ingredients by recipe ID
+      description: Deletes all ingredients associated with a recipe ID
+      operationId: deleteIngredients
+      parameters:
+        - name: recipe_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID of the recipe to delete ingredients for
+      responses:
+        '200':
+          description: Ingredients deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [true]
+                  message:
+                    type: string
+                  deletedCount:
+                    type: integer
+                    description: Number of ingredients deleted
+                required:
+                  - success
+                  - message
+                  - deletedCount
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [false]
+                  error:
+                    type: string
+                required:
+                  - success
+                  - error
   /ingredients/search:
     post:
       summary: Search for recipes by ingredients

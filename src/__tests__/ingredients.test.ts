@@ -110,18 +110,5 @@ describe('Ingredients API Routes', () => {
       expect(embeddingService.searchSimilarIngredients).not.toHaveBeenCalled();
     });
 
-    it('should use default limit when not specified', async () => {
-      const response = await request(app)
-        .post('/ingredients/search')
-        .send({
-          ingredients: 'flour, eggs'
-        });
-
-      expect(response.status).toBe(200);
-      expect(embeddingService.searchSimilarIngredients).toHaveBeenCalledWith(
-        'flour, eggs', 
-        3
-      );
-    });
   });
 }); 

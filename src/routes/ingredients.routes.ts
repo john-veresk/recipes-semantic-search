@@ -44,7 +44,7 @@ const searchIngredients: RequestHandler = async (req, res) => {
       return;
     }
     
-    const results = await embeddingService.searchSimilarIngredients(ingredients, limit || 3);
+    const results = await embeddingService.searchSimilarIngredients(ingredients, limit);
     
     res.json({ 
       success: true, 
@@ -59,8 +59,35 @@ const searchIngredients: RequestHandler = async (req, res) => {
   }
 };
 
+// Route to delete ingredients by recipe_id
+const deleteIngredients: RequestHandler = async (req, res) => {
+  try {
+    const recipe_id = req.query.recipe_id as string;
+    
+    if (!recipe_id || typeof recipe_id !== 'string') {
+      res.status(400).json({ error: 'recipe_id query parameter is required and must be a string' });
+      return;
+    }
+    
+    const deletedCount = await embeddingService.deleteIngredientsByRecipeId(recipe_id);
+    
+    res.json({ 
+      success: true, 
+      message: `Ingredients for recipe ${recipe_id} deleted successfully`,
+      deletedCount
+    });
+  } catch (error) {
+    console.error('Error deleting ingredients:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to delete ingredients' 
+    });
+  }
+};
+
 // Register routes
 router.post('/', addIngredients);
 router.post('/search', searchIngredients);
+router.delete('/', deleteIngredients);
 
 export default router; 

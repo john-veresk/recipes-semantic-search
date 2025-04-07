@@ -64,6 +64,38 @@ describe('EmbeddingService', () => {
     }
   });
 
+  test('should delete ingredients by recipe ID', async () => {
+    // Add some test ingredients
+    await embeddingService.addIngredient('recipe_to_delete', 'tomatoes, cheese, basil');
+    await embeddingService.addIngredient('recipe_to_delete', 'flour, eggs, sugar');
+    await embeddingService.addIngredient('recipe_to_keep', 'tomatoes, onions, garlic');
+    
+    // Delete ingredients for recipe_to_delete
+    const deletedCount = await embeddingService.deleteIngredientsByRecipeId('recipe_to_delete');
+    
+    // Verify that the correct number of items were deleted
+    expect(deletedCount).toBe(2);
+    
+    // Verify that remaining recipe is still there
+    const results = await embeddingService.searchSimilarIngredients('tomatoes', 10);
+    const recipeIds = results.map(r => r.recipe_id);
+    
+    // Should contain recipe_to_keep but not recipe_to_delete
+    expect(recipeIds).toContain('recipe_to_keep');
+    expect(recipeIds).not.toContain('recipe_to_delete');
+  });
+
+  test('should return 0 when no ingredients match recipe ID for deletion', async () => {
+    // Add some test ingredients
+    await embeddingService.addIngredient('recipe1', 'tomatoes, cheese, basil');
+    
+    // Try to delete with a non-existent recipe ID
+    const deletedCount = await embeddingService.deleteIngredientsByRecipeId('non_existent_recipe');
+    
+    // Should return 0 as no ingredients matched
+    expect(deletedCount).toBe(0);
+  });
+
   test('should find similar ingredients', async () => {
     // Add some test ingredients
     await embeddingService.addIngredient('recipe1', 'tomatoes, cheese, basil');

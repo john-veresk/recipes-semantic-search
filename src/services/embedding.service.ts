@@ -59,6 +59,29 @@ export class EmbeddingService {
     return id;
   }
 
+  async deleteIngredientsByRecipeId(recipe_id: string): Promise<number> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    // Use ChromaDB's where filtering capability to find entries with matching recipe_id
+    const result = await this.collection.get({
+      where: { recipe_id }
+    });
+
+    // If there are no IDs to delete, return 0
+    if (!result.ids || result.ids.length === 0) {
+      return 0;
+    }
+
+    // Delete the found entries
+    await this.collection.delete({
+      ids: result.ids
+    });
+
+    return result.ids.length;
+  }
+
   async searchSimilarIngredients(query: string, limit: number = 3): Promise<{recipe_id: string, ingredients: string}[]> {
     if (!this.initialized) {
       await this.initialize();
