@@ -32,9 +32,18 @@
   },
   "dependencies": {
     "@types/express": "^5.0.1",
+    "@types/js-yaml": "^4.0.9",
+    "@types/swagger-ui-express": "^4.1.8",
     "axios": "^1.6.8",
+    "chromadb": "^2.2.0",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
-    "express-openapi-validator": "^5.4.9"
+    "express-openapi-validator": "^5.4.9",
+    "js-yaml": "^4.1.0",
+    "ollama": "^0.5.14",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "directories": {
+    "doc": "docs"
   }
 }

@@ -13,7 +13,6 @@ export function createApp(): Express {
   // Parse JSON request bodies
   app.use(express.json());
   
-  // Configure OpenAPI validation
   app.use(
     OpenApiValidator.middleware({
       apiSpec: path.join(__dirname, 'openapi/schema.yaml'),
@@ -21,6 +20,7 @@ export function createApp(): Express {
       validateResponses: true
     })
   );
+  
   
   // Set up routes
   setupRoutes(app);

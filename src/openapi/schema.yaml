@@ -25,4 +25,145 @@ paths:
                     format: date-time
                 required:
                   - status
-                  - timestamp 
+                  - timestamp
+  /ingredients:
+    post:
+      summary: Add ingredients for a recipe
+      description: Adds ingredients for a recipe to the vector store
+      operationId: addIngredients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipe_id:
+                  type: string
+                  description: ID of the recipe
+                ingredients:
+                  type: string
+                  description: Ingredients list as text
+              required:
+                - recipe_id
+                - ingredients
+      responses:
+        '201':
+          description: Ingredients added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [true]
+                  message:
+                    type: string
+                  id:
+                    type: string
+                required:
+                  - success
+                  - message
+                  - id
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [false]
+                  error:
+                    type: string
+                required:
+                  - success
+                  - error
+  /ingredients/search:
+    post:
+      summary: Search for recipes by ingredients
+      description: Searches for recipes with similar ingredients
+      operationId: searchIngredients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ingredients:
+                  type: string
+                  description: Ingredients to search for
+                limit:
+                  type: integer
+                  description: Maximum number of results to return
+                  default: 3
+                  minimum: 1
+                  maximum: 20
+              required:
+                - ingredients
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [true]
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        recipe_id:
+                          type: string
+                        ingredients:
+                          type: string
+                      required:
+                        - recipe_id
+                        - ingredients
+                required:
+                  - success
+                  - results
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [false]
+                  error:
+                    type: string
+                required:
+                  - success
+                  - error 
