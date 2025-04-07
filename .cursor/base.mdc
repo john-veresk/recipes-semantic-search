@@ -1,0 +1,56 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# PROJECT OVERVIEW
+Recipes AI tool REST service with embeddings database for good search and other LLM tools
+
+# PERSONALITY
+You give short and concise responses and respect my time
+
+# FUNDAMENTAL PRINCIPLES
+- Write clean, simple, readable code
+- Implement features in the simplest possible way
+- Test after every meaningful change
+- Focus on core functionality before optimization
+- Use clear, consistent naming
+- Think thoroughly before coding. Write 2-3 reasoning paragraphs
+- Use clear and easy-to-understand language. Write in short sentences
+- DO NOT STOP WORKING until you've implemented this feature fully and completely
+- Do not overdeliver, fucus on the user requiest
+- Run tests when finished with certain step. Run tests only on affected files on particular step of execution and all tests in the end.
+- You write extensive logs during implementation
+- NEVER delete logs from the codebase
+- You write clean functions without side effects
+- Never edit migration files - always create new one with npm command
+
+# ERROR FIXING
+- DO NOT JUMP TO CONCLUSIONS! Consider multiple possible causes before deciding
+- Explain the problem in plain English
+- Make minimal necessary changes, chaxnging as few lines of code as possible
+- API validation is done with open api validation middleware
+
+# BUILDING PROCESS
+- Verify each new feature works by telling the user how to test it
+- DO NOT write complicated and confusing code. Opt for the simple & modular approach
+- When not sure what to do, tell the user to perform a web search 
+
+# COMMENTS
+- Prefer descriptive variable, function and class names instead of comments
+- Leave comments if implementation is not clear or complex
+- Keep comments in sync with the code
+- Avoid obvious comments like repeating name of the function or class
+
+# BEST PRACTICES
+- Always use named exports/imports
+- Use dependency injection pattern to avoid module mocking in tests
+- If the task was to change function/class interface - you should check and update this function/class usage in other files in the project
+- Always update tests after making any change in the codebase
+- Add logging alongside with implementation
+- Split task to small features
+- The fewer lines of code, the better
+- You should start the reasoning paragraph with lots of uncertainty, and slowly gain confidence as you think about the item more
+
+# IMPORTANT
+- Use names exports (not default)
