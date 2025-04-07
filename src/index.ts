@@ -1,9 +1,14 @@
-import { helloWorld } from './app';
+import { createApp } from './app';
+import dotenv from 'dotenv';
 
-// Main entry point for the application
-function main() {
-  helloWorld();
-}
+// Load environment variables
+dotenv.config();
 
-// Run the main function
-main(); 
+const PORT = process.env.PORT || 3000;
+
+// Create and start the server
+const app = createApp();
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+}); 

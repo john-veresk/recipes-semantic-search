@@ -51,6 +51,7 @@ You give short and concise responses and respect my time
 - Split task to small features
 - The fewer lines of code, the better
 - You should start the reasoning paragraph with lots of uncertainty, and slowly gain confidence as you think about the item more
+- update [project-structure.md](mdc:docs/project-structure.md) after folder structure has changed or improtant files are added. keep it consise and short
 
 # IMPORTANT
 - Use names exports (not default)
