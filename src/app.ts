@@ -14,26 +14,15 @@ export function createApp(): Express {
   app.use(express.json());
   
   app.use(
-    OpenApiValidator.middleware({
+    OpenApiValidator.middleware({xw
       apiSpec: path.join(__dirname, 'openapi/schema.yaml'),
       validateRequests: true,
       validateResponses: true
     })
   );
   
-  
   // Set up routes
   setupRoutes(app);
   
   return app;
 }
-
-/**
- * Prints "Hello, World!" message
- * @returns {string} The hello world message
- */
-export function helloWorld(): string {
-  const message = "Hello, World!";
-  console.log(message);
-  return message;
-} 
