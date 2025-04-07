@@ -1,4 +1,5 @@
 import ollama from 'ollama';
+import { ChromaClient, Collection } from 'chromadb';
 
 // Document structure for ingredients
 interface DocumentWithEmbedding {
@@ -8,15 +9,26 @@ interface DocumentWithEmbedding {
   embedding: number[];
 }
 
-class EmbeddingService {
-  private documents: DocumentWithEmbedding[] = [];
+export class EmbeddingService {
+  private client: ChromaClient;
+  private collection!: Collection; // Using definite assignment assertion
   private embeddingModel = 'mxbai-embed-large';
   private initialized = false;
+  private collectionName = 'ingredients';
+
+  constructor(client?: ChromaClient) {
+    this.client = client || new ChromaClient();
+  }
 
   async initialize(): Promise<void> {
     try {
+      // Create or get the collection
+      this.collection = await this.client.getOrCreateCollection({
+        name: this.collectionName,
+      });
+      
       this.initialized = true;
-      console.log('In-memory embedding service initialized');
+      console.log('ChromaDB embedding service initialized');
     } catch (error) {
       console.error('Failed to initialize embedding service:', error);
       throw error;
@@ -36,11 +48,12 @@ class EmbeddingService {
     
     const id = `ing_${Date.now()}`;
     
-    this.documents.push({
-      id,
-      recipe_id,
-      ingredients,
-      embedding: response.embedding,
+    // Add to ChromaDB
+    await this.collection.add({
+      ids: [id],
+      embeddings: [response.embedding],
+      metadatas: [{ recipe_id }],
+      documents: [ingredients]
     });
     
     return id;
@@ -51,58 +64,38 @@ class EmbeddingService {
       await this.initialize();
     }
 
-    if (this.documents.length === 0) {
-      return [];
-    }
-
     // Generate embedding for query
     const response = await ollama.embeddings({
       model: this.embeddingModel,
       prompt: query,
     });
     
-    const queryEmbedding = response.embedding;
-    
-    // Calculate cosine similarity with all documents
-    const documentsWithSimilarity = this.documents.map(doc => {
-      const similarity = this.cosineSimilarity(queryEmbedding, doc.embedding);
-      return {
-        recipe_id: doc.recipe_id,
-        ingredients: doc.ingredients,
-        similarity
-      };
+    // Use ChromaDB's native query capabilities
+    const result = await this.collection.query({
+      queryEmbeddings: [response.embedding],
+      nResults: limit
     });
     
-    // Sort by similarity (highest first) and take the top 'limit' results
-    const results = documentsWithSimilarity
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, limit)
-      .map(({recipe_id, ingredients}) => ({recipe_id, ingredients}));
+    // Map the results to the expected format
+    const matches: {recipe_id: string, ingredients: string}[] = [];
     
-    return results;
-  }
-  
-  // Calculate cosine similarity between two vectors
-  private cosineSimilarity(vecA: number[], vecB: number[]): number {
-    if (vecA.length !== vecB.length) {
-      throw new Error('Vectors must have the same length');
+    // Safely access nested properties
+    const metadatas = result.metadatas?.[0] || [];
+    const documents = result.documents?.[0] || [];
+    
+    for (let i = 0; i < metadatas.length && i < documents.length; i++) {
+      const metadata = metadatas[i];
+      const document = documents[i];
+      
+      if (metadata?.recipe_id && document) {
+        matches.push({
+          recipe_id: String(metadata.recipe_id),
+          ingredients: String(document)
+        });
+      }
     }
     
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-    
-    for (let i = 0; i < vecA.length; i++) {
-      dotProduct += vecA[i] * vecB[i];
-      normA += vecA[i] ** 2;
-      normB += vecB[i] ** 2;
-    }
-    
-    if (normA === 0 || normB === 0) {
-      return 0;
-    }
-    
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+    return matches;
   }
 }
 

@@ -14,7 +14,7 @@ export function createApp(): Express {
   app.use(express.json());
   
   app.use(
-    OpenApiValidator.middleware({xw
+    OpenApiValidator.middleware({
       apiSpec: path.join(__dirname, 'openapi/schema.yaml'),
       validateRequests: true,
       validateResponses: true
