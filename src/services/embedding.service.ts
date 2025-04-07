@@ -14,10 +14,11 @@ export class EmbeddingService {
   private collection!: Collection; // Using definite assignment assertion
   private embeddingModel = 'mxbai-embed-large';
   private initialized = false;
-  private collectionName = 'ingredients';
+  private collectionName: string;
 
-  constructor(client?: ChromaClient) {
+  constructor(client?: ChromaClient, isTestEnvironment = process.env.NODE_ENV === 'test') {
     this.client = client || new ChromaClient();
+    this.collectionName = isTestEnvironment ? 'ingredients-test' : 'ingredients';
   }
 
   async initialize(): Promise<void> {
@@ -119,6 +120,27 @@ export class EmbeddingService {
     }
     
     return matches;
+  }
+
+  async clearCollection(): Promise<void> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    
+    try {
+      // Get all ids in the collection
+      const result = await this.collection.get({});
+      
+      if (result.ids && result.ids.length > 0) {
+        // Delete all entries
+        await this.collection.delete({
+          ids: result.ids
+        });
+      }
+    } catch (error) {
+      console.error('Failed to clear collection:', error);
+      throw error;
+    }
   }
 }
 

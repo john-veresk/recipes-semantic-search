@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { EmbeddingService } from '../services/embedding.service';
-import { ChromaClientStub } from '../testUtils/stubs/chroma.stub';
+import { ChromaClient } from 'chromadb';
 
 // Create a mock for the ollama module
 jest.mock('ollama', () => {
@@ -15,23 +15,32 @@ jest.mock('ollama', () => {
 
 // Import ollama after mocking
 import ollama from 'ollama';
-
 describe('EmbeddingService', () => {
   let embeddingService: EmbeddingService;
-  let chromaClientStub: ChromaClientStub;
+  let chromaClient: ChromaClient;
 
   beforeEach(async () => {
     // Reset mocks
     jest.clearAllMocks();
     
-    // Create a new stub client for each test
-    chromaClientStub = new ChromaClientStub();
+    // Create a new ChromaClient for each test
+    chromaClient = new ChromaClient();
     
-    // Create embedding service with the stub client
-    embeddingService = new EmbeddingService(chromaClientStub as any);
+    // Create embedding service with test environment flag
+    embeddingService = new EmbeddingService(chromaClient, true);
     
     // Initialize the service
     await embeddingService.initialize();
+    
+    // Clear any existing data in the test collection
+    await embeddingService.clearCollection();
+  });
+
+  afterAll(async () => {
+    // Clean up the test collection after all tests
+    if (embeddingService) {
+      await embeddingService.clearCollection();
+    }
   });
 
   test('should initialize successfully', () => {

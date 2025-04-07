@@ -59,22 +59,10 @@ try {
 app.use('/ingredients', ingredientsRoutes);
 app.use('/health', healthRoutes);
 
-// Debug route to confirm server is working
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Ingredients API is running', 
-    endpoints: [
-      '/ingredients (POST)',
-      '/ingredients/search (POST)',
-      '/health (GET)',
-      '/api-docs (GET) - Swagger UI'
-    ]
-  });
-});
-
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log("NODE_ENV:", process.env.NODE_ENV);
   console.log(`View available endpoints at: http://localhost:${PORT}/`);
   console.log(`API documentation available at: http://localhost:${PORT}/api-docs`);
 }); 
