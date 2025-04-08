@@ -10,7 +10,7 @@ import embeddingService from './services/embedding.service';
 
 // Create Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3100;
 
 // Middleware
 app.use(express.json());
