@@ -1,0 +1,1553 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Recipes API",
+    "version": "1.0.0",
+    "description": "API for accessing recipe data"
+  },
+  "tags": [
+    {
+      "name": "health",
+      "description": "Health check endpoints"
+    },
+    {
+      "name": "recipes",
+      "description": "Recipe management endpoints"
+    },
+    {
+      "name": "ingredients",
+      "description": "Ingredient management endpoints"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check endpoint",
+        "description": "Returns the current service status",
+        "tags": [
+          "health"
+        ],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recipes": {
+      "get": {
+        "summary": "Get all recipes",
+        "description": "Returns a list of recipes with pagination. Use cursor for getting next page of results.",
+        "tags": [
+          "recipes"
+        ],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor for pagination. Use the next_cursor from previous response.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of recipes to return (1-10000). Default is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of recipes with pagination information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Recipe"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "required": [
+                        "has_more"
+                      ],
+                      "properties": {
+                        "next_cursor": {
+                          "type": "integer",
+                          "nullable": true,
+                          "description": "Cursor to use for the next page. Null if no more pages."
+                        },
+                        "has_more": {
+                          "type": "boolean",
+                          "description": "Whether there are more results available"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new recipe",
+        "description": "Adds a new recipe to the database",
+        "tags": [
+          "recipes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRecipe"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recipe created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Recipe"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recipes/search": {
+      "get": {
+        "summary": "Search recipes",
+        "description": "Search for recipes with various filters",
+        "tags": [
+          "recipes"
+        ],
+        "parameters": [
+          {
+            "name": "optional_ingredients",
+            "in": "query",
+            "description": "Filter recipes by optional ingredients (comma-separated list). Returns recipes that contain any of the specified ingredients (partial match).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "flour,sugar,eggs"
+            }
+          },
+          {
+            "name": "required_ingredients",
+            "in": "query",
+            "description": "Filter recipes by required ingredients (comma-separated list). Returns only recipes that contain ALL of the specified ingredients (partial match).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "chicken,garlic"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of recipes to return (1-10000). Default is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of recipes matching the search criteria",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Recipe"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recipes/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "Recipe ID",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get recipe by ID",
+        "description": "Returns a single recipe by its ID",
+        "tags": [
+          "recipes"
+        ],
+        "responses": {
+          "200": {
+            "description": "Recipe found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Recipe"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update recipe",
+        "description": "Updates an existing recipe by ID",
+        "tags": [
+          "recipes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRecipe"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recipe updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Recipe"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete recipe",
+        "description": "Deletes a recipe by ID",
+        "tags": [
+          "recipes"
+        ],
+        "responses": {
+          "204": {
+            "description": "Recipe deleted successfully"
+          },
+          "400": {
+            "description": "Invalid ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recipes/batch": {
+      "post": {
+        "summary": "Create multiple recipes at once",
+        "operationId": "batchCreateRecipes",
+        "tags": [
+          "recipes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCreateRecipes"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created recipes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Recipe"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ingredients": {
+      "get": {
+        "summary": "Get all ingredients",
+        "operationId": "getIngredients",
+        "tags": [
+          "ingredients"
+        ],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor for pagination. Use the next_cursor from previous response.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of ingredients to return (1-10000). Default is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of ingredients with pagination information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedIngredients"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new ingredient",
+        "operationId": "createIngredient",
+        "tags": [
+          "ingredients"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIngredient"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created ingredient",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ingredient"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ingredients/batch": {
+      "post": {
+        "summary": "Create multiple ingredients at once",
+        "operationId": "batchCreateIngredients",
+        "tags": [
+          "ingredients"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCreateIngredients"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created ingredients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Ingredient"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ingredients/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          },
+          "description": "The ingredient ID"
+        }
+      ],
+      "get": {
+        "summary": "Get a single ingredient by ID",
+        "operationId": "getIngredientById",
+        "tags": [
+          "ingredients"
+        ],
+        "responses": {
+          "200": {
+            "description": "The ingredient",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ingredient"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ingredient not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an ingredient",
+        "operationId": "updateIngredient",
+        "tags": [
+          "ingredients"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateIngredient"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated ingredient",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ingredient"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ingredient not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an ingredient",
+        "operationId": "deleteIngredient",
+        "tags": [
+          "ingredients"
+        ],
+        "responses": {
+          "204": {
+            "description": "Ingredient successfully deleted"
+          },
+          "404": {
+            "description": "Ingredient not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "timestamp"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-04-20T12:34:56.789Z"
+          }
+        }
+      },
+      "Recipe": {
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Chocolate Cake"
+          },
+          "source_url": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/recipe"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "example": "Recipe Book"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true,
+            "example": "en"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-04-20T12:34:56.789Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-04-20T12:34:56.789Z"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "A delicious chocolate cake recipe"
+          },
+          "servings": {
+            "type": "integer",
+            "nullable": true,
+            "example": 8
+          },
+          "prep_time": {
+            "type": "string",
+            "nullable": true,
+            "example": "15 minutes"
+          },
+          "cook_time": {
+            "type": "string",
+            "nullable": true,
+            "example": "30 minutes"
+          },
+          "yield": {
+            "type": "string",
+            "nullable": true,
+            "example": "1 large cake (12 slices)"
+          },
+          "suitable_for_diet": {
+            "type": "string",
+            "nullable": true,
+            "example": "vegetarian"
+          },
+          "date_published": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2023-04-20T12:34:56.789Z"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "example": [
+              "9-inch cake pan",
+              "electric mixer",
+              "measuring cups"
+            ]
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "flour",
+              "sugar",
+              "eggs",
+              "cocoa powder"
+            ]
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Mix dry ingredients",
+              "Add wet ingredients",
+              "Bake at 350F for 30 minutes"
+            ]
+          },
+          "author": {
+            "type": "string",
+            "nullable": true,
+            "example": "Jane Doe"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Dessert",
+              "Baking"
+            ]
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "American",
+              "International"
+            ]
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "chocolate",
+              "cake",
+              "dessert"
+            ]
+          },
+          "nutrition": {
+            "type": "string",
+            "nullable": true,
+            "example": "Calories: 350, Fat: 15g, Carbs: 50g, Protein: 5g"
+          },
+          "image_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "https://example.com/cake.jpg"
+            ]
+          },
+          "video_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": []
+          }
+        }
+      },
+      "CreateRecipe": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Chocolate Cake"
+          },
+          "source_url": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/recipe"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "example": "Recipe Book"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true,
+            "example": "en"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "A delicious chocolate cake recipe"
+          },
+          "servings": {
+            "type": "integer",
+            "nullable": true,
+            "example": 8
+          },
+          "prep_time": {
+            "type": "string",
+            "nullable": true,
+            "example": "15 minutes"
+          },
+          "cook_time": {
+            "type": "string",
+            "nullable": true,
+            "example": "30 minutes"
+          },
+          "yield": {
+            "type": "string",
+            "nullable": true,
+            "example": "1 large cake (12 slices)"
+          },
+          "suitable_for_diet": {
+            "type": "string",
+            "nullable": true,
+            "example": "vegetarian"
+          },
+          "date_published": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2023-04-20T12:34:56.789Z"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "example": [
+              "9-inch cake pan",
+              "electric mixer",
+              "measuring cups"
+            ]
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "flour",
+              "sugar",
+              "eggs",
+              "cocoa powder"
+            ]
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Mix dry ingredients",
+              "Add wet ingredients",
+              "Bake at 350F for 30 minutes"
+            ]
+          },
+          "author": {
+            "type": "string",
+            "nullable": true,
+            "example": "Jane Doe"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Dessert",
+              "Baking"
+            ]
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "American",
+              "International"
+            ]
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "chocolate",
+              "cake",
+              "dessert"
+            ]
+          },
+          "nutrition": {
+            "type": "string",
+            "nullable": true,
+            "example": "Calories: 350, Fat: 15g, Carbs: 50g, Protein: 5g"
+          },
+          "image_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "https://example.com/cake.jpg"
+            ]
+          },
+          "video_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": []
+          }
+        }
+      },
+      "UpdateRecipe": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Chocolate Cake"
+          },
+          "source_url": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/recipe"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "example": "Recipe Book"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true,
+            "example": "en"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "A delicious chocolate cake recipe"
+          },
+          "servings": {
+            "type": "integer",
+            "nullable": true,
+            "example": 8
+          },
+          "prep_time": {
+            "type": "string",
+            "nullable": true,
+            "example": "15 minutes"
+          },
+          "cook_time": {
+            "type": "string",
+            "nullable": true,
+            "example": "30 minutes"
+          },
+          "yield": {
+            "type": "string",
+            "nullable": true,
+            "example": "1 large cake (12 slices)"
+          },
+          "suitable_for_diet": {
+            "type": "string",
+            "nullable": true,
+            "example": "vegetarian"
+          },
+          "date_published": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2023-04-20T12:34:56.789Z"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "example": [
+              "9-inch cake pan",
+              "electric mixer",
+              "measuring cups"
+            ]
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "flour",
+              "sugar",
+              "eggs",
+              "cocoa powder"
+            ]
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Mix dry ingredients",
+              "Add wet ingredients",
+              "Bake at 350F for 30 minutes"
+            ]
+          },
+          "author": {
+            "type": "string",
+            "nullable": true,
+            "example": "Jane Doe"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Dessert",
+              "Baking"
+            ]
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "American",
+              "International"
+            ]
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "chocolate",
+              "cake",
+              "dessert"
+            ]
+          },
+          "nutrition": {
+            "type": "string",
+            "nullable": true,
+            "example": "Calories: 350, Fat: 15g, Carbs: 50g, Protein: 5g"
+          },
+          "image_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "https://example.com/cake.jpg"
+            ]
+          },
+          "video_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": []
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Recipe not found"
+          }
+        }
+      },
+      "Ingredient": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "amount",
+          "units",
+          "recipe_id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Sugar"
+          },
+          "amount": {
+            "type": "number",
+            "format": "float",
+            "example": 1
+          },
+          "units": {
+            "type": "string",
+            "example": "cup"
+          },
+          "recipe_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "CreateIngredient": {
+        "type": "object",
+        "required": [
+          "name",
+          "amount",
+          "units",
+          "recipe_id"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Sugar"
+          },
+          "amount": {
+            "type": "number",
+            "format": "float",
+            "example": 1
+          },
+          "units": {
+            "type": "string",
+            "example": "cup"
+          },
+          "recipe_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "UpdateIngredient": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Sugar"
+          },
+          "amount": {
+            "type": "number",
+            "format": "float",
+            "example": 1
+          },
+          "units": {
+            "type": "string",
+            "example": "cup"
+          },
+          "recipe_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "BatchCreateIngredients": {
+        "type": "object",
+        "required": [
+          "ingredients"
+        ],
+        "properties": {
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "amount",
+                "units",
+                "recipe_id"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "Sugar"
+                },
+                "amount": {
+                  "type": "number",
+                  "format": "float",
+                  "example": 1
+                },
+                "units": {
+                  "type": "string",
+                  "example": "cup"
+                },
+                "recipe_id": {
+                  "type": "integer",
+                  "example": 1
+                }
+              }
+            }
+          }
+        }
+      },
+      "BatchCreateRecipes": {
+        "type": "object",
+        "required": [
+          "recipes"
+        ],
+        "properties": {
+          "recipes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "Chocolate Cake"
+                },
+                "source_url": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "https://example.com/recipe"
+                },
+                "source": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "Recipe Book"
+                },
+                "language": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "en"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "A delicious chocolate cake recipe"
+                },
+                "servings": {
+                  "type": "integer",
+                  "nullable": true,
+                  "example": 8
+                },
+                "prep_time": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "15 minutes"
+                },
+                "cook_time": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "30 minutes"
+                },
+                "yield": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "1 large cake (12 slices)"
+                },
+                "suitable_for_diet": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "vegetarian"
+                },
+                "date_published": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true,
+                  "example": "2023-04-20T12:34:56.789Z"
+                },
+                "tools": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "nullable": true,
+                  "example": [
+                    "9-inch cake pan",
+                    "electric mixer",
+                    "measuring cups"
+                  ]
+                },
+                "ingredients": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "flour",
+                    "sugar",
+                    "eggs",
+                    "cocoa powder"
+                  ]
+                },
+                "instructions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "Mix dry ingredients",
+                    "Add wet ingredients",
+                    "Bake at 350F for 30 minutes"
+                  ]
+                },
+                "author": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "Jane Doe"
+                },
+                "categories": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "Dessert",
+                    "Baking"
+                  ]
+                },
+                "cuisines": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "American",
+                    "International"
+                  ]
+                },
+                "keywords": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "chocolate",
+                    "cake",
+                    "dessert"
+                  ]
+                },
+                "nutrition": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "Calories: 350, Fat: 15g, Carbs: 50g, Protein: 5g"
+                },
+                "image_urls": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": [
+                    "https://example.com/cake.jpg"
+                  ]
+                },
+                "video_urls": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "example": []
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaginatedIngredients": {
+        "type": "object",
+        "required": [
+          "data",
+          "pagination"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Ingredient"
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "required": [
+              "has_more"
+            ],
+            "properties": {
+              "next_cursor": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Cursor to use for the next page. Null if no more pages."
+              },
+              "has_more": {
+                "type": "boolean",
+                "description": "Whether there are more results available"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
