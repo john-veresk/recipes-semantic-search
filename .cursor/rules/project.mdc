@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+## Overview
+Recipes AI tool REST service with embeddings database for good search and other LLM tools
+
+## Structure
+- [project-structure.md](mdc:docs/project-structure.md)
+- update project structure after new folder or improtant files are added
+
+## Development process
+- API validation is done with open api validation middleware
