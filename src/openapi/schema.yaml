@@ -223,4 +223,80 @@ paths:
                     type: string
                 required:
                   - success
+                  - error
+  /ingredients/batch:
+    post:
+      summary: Batch upload ingredients for multiple recipes
+      description: Adds ingredients for multiple recipes to the vector store in a single operation
+      operationId: addIngredientsBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                records:
+                  type: array
+                  description: Array of ingredient records to add
+                  items:
+                    type: object
+                    properties:
+                      recipe_id:
+                        type: string
+                        description: ID of the recipe
+                      ingredients:
+                        type: string
+                        description: Ingredients list as text
+                    required:
+                      - recipe_id
+                      - ingredients
+              required:
+                - records
+      responses:
+        '201':
+          description: Ingredients batch added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [true]
+                  message:
+                    type: string
+                  ids:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - success
+                  - message
+                  - ids
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [false]
+                  error:
+                    type: string
+                required:
+                  - success
                   - error 

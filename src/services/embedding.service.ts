@@ -9,6 +9,12 @@ interface DocumentWithEmbedding {
   embedding: number[];
 }
 
+// Add new interface for batch input
+interface IngredientRecord {
+  recipe_id: string;
+  ingredients: string;
+}
+
 export class EmbeddingService {
   private client: ChromaClient;
   private collection!: Collection; // Using definite assignment assertion
@@ -58,6 +64,50 @@ export class EmbeddingService {
     });
     
     return id;
+  }
+
+  async addIngredientsBatch(records: IngredientRecord[]): Promise<string[]> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    
+    if (records.length === 0) {
+      return [];
+    }
+
+    const ids: string[] = [];
+    const embeddings: number[][] = [];
+    const metadatas: Record<string, any>[] = [];
+    const documents: string[] = [];
+    
+    // Generate embeddings for all ingredients in parallel
+    const embeddingPromises = records.map(record => 
+      ollama.embeddings({
+        model: this.embeddingModel,
+        prompt: record.ingredients,
+      })
+    );
+    
+    const embeddingResponses = await Promise.all(embeddingPromises);
+    
+    // Prepare data for batch insertion
+    for (let i = 0; i < records.length; i++) {
+      const id = `ing_${Date.now()}_${i}`;
+      ids.push(id);
+      embeddings.push(embeddingResponses[i].embedding);
+      metadatas.push({ recipe_id: records[i].recipe_id });
+      documents.push(records[i].ingredients);
+    }
+    
+    // Add all embeddings in a single batch operation
+    await this.collection.add({
+      ids,
+      embeddings,
+      metadatas,
+      documents
+    });
+    
+    return ids;
   }
 
   async deleteIngredientsByRecipeId(recipe_id: string): Promise<number> {

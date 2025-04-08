@@ -9,6 +9,9 @@ jest.mock('../services/embedding.service', () => ({
   addIngredient: jest.fn().mockImplementation((recipe_id, ingredients) => {
     return Promise.resolve(`mock_id_${Date.now()}`);
   }),
+  addIngredientsBatch: jest.fn().mockImplementation((records: Array<{recipe_id: string, ingredients: string}>) => {
+    return Promise.resolve(records.map((_: {recipe_id: string, ingredients: string}, index: number) => `mock_batch_id_${Date.now()}_${index}`));
+  }),
   searchSimilarIngredients: jest.fn().mockImplementation((query, limit) => {
     return Promise.resolve([
       { 
@@ -110,5 +113,103 @@ describe('Ingredients API Routes', () => {
       expect(embeddingService.searchSimilarIngredients).not.toHaveBeenCalled();
     });
 
+  });
+
+  describe('POST /ingredients/batch', () => {
+    it('should add ingredients batch successfully', async () => {
+      const response = await request(app)
+        .post('/ingredients/batch')
+        .send({
+          records: [
+            {
+              recipe_id: 'recipe123',
+              ingredients: 'flour, sugar, eggs, butter'
+            },
+            {
+              recipe_id: 'recipe456',
+              ingredients: 'pasta, tomato sauce, cheese, basil'
+            }
+          ]
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toContain('added successfully');
+      expect(response.body.ids).toHaveLength(2);
+      expect(embeddingService.addIngredientsBatch).toHaveBeenCalledWith([
+        {
+          recipe_id: 'recipe123',
+          ingredients: 'flour, sugar, eggs, butter'
+        },
+        {
+          recipe_id: 'recipe456',
+          ingredients: 'pasta, tomato sauce, cheese, basil'
+        }
+      ]);
+    });
+
+    it('should return 400 when records is not an array', async () => {
+      const response = await request(app)
+        .post('/ingredients/batch')
+        .send({
+          records: 'not an array'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('records must be an array');
+      expect(embeddingService.addIngredientsBatch).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when records array is empty', async () => {
+      const response = await request(app)
+        .post('/ingredients/batch')
+        .send({
+          records: []
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('records array cannot be empty');
+      expect(embeddingService.addIngredientsBatch).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when a record has missing recipe_id', async () => {
+      const response = await request(app)
+        .post('/ingredients/batch')
+        .send({
+          records: [
+            {
+              ingredients: 'flour, sugar, eggs, butter'
+            },
+            {
+              recipe_id: 'recipe456',
+              ingredients: 'pasta, tomato sauce, cheese, basil'
+            }
+          ]
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('recipe_id is required');
+      expect(embeddingService.addIngredientsBatch).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when a record has missing ingredients', async () => {
+      const response = await request(app)
+        .post('/ingredients/batch')
+        .send({
+          records: [
+            {
+              recipe_id: 'recipe123',
+              ingredients: 'flour, sugar, eggs, butter'
+            },
+            {
+              recipe_id: 'recipe456'
+            }
+          ]
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('ingredients is required');
+      expect(embeddingService.addIngredientsBatch).not.toHaveBeenCalled();
+    });
   });
 }); 

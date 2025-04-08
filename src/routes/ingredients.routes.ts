@@ -85,9 +85,60 @@ const deleteIngredients: RequestHandler = async (req, res) => {
   }
 };
 
+// Route to batch add ingredients
+const addIngredientsBatch: RequestHandler = async (req, res) => {
+  try {
+    const { records } = req.body;
+    
+    if (!Array.isArray(records)) {
+      res.status(400).json({ error: 'records must be an array of ingredient records' });
+      return;
+    }
+    
+    if (records.length === 0) {
+      res.status(400).json({ error: 'records array cannot be empty' });
+      return;
+    }
+    
+    // Validate each record in the batch
+    for (let i = 0; i < records.length; i++) {
+      const record = records[i];
+      
+      if (!record.recipe_id || typeof record.recipe_id !== 'string') {
+        res.status(400).json({ 
+          error: `Invalid record at index ${i}: recipe_id is required and must be a string` 
+        });
+        return;
+      }
+      
+      if (!record.ingredients || typeof record.ingredients !== 'string') {
+        res.status(400).json({ 
+          error: `Invalid record at index ${i}: ingredients is required and must be a string` 
+        });
+        return;
+      }
+    }
+    
+    const ids = await embeddingService.addIngredientsBatch(records);
+    
+    res.status(201).json({ 
+      success: true, 
+      message: `${ids.length} ingredient records added successfully`,
+      ids
+    });
+  } catch (error) {
+    console.error('Error adding ingredients batch:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to add ingredients batch' 
+    });
+  }
+};
+
 // Register routes
 router.post('/', addIngredients);
 router.post('/search', searchIngredients);
+router.post('/batch', addIngredientsBatch);
 router.delete('/', deleteIngredients);
 
 export default router; 
