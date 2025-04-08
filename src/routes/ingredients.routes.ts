@@ -69,13 +69,27 @@ const deleteIngredients: RequestHandler = async (req, res) => {
       return;
     }
     
-    const deletedCount = await embeddingService.deleteIngredientsByRecipeId(recipe_id);
+    let deletedCount: number;
     
-    res.json({ 
-      success: true, 
-      message: `Ingredients for recipe ${recipe_id} deleted successfully`,
-      deletedCount
-    });
+    if (recipe_id === '*') {
+      // Special case: delete all ingredients
+      deletedCount = await embeddingService.clearCollection();
+      
+      res.json({
+        success: true,
+        message: 'All ingredients deleted successfully',
+        deletedCount
+      });
+    } else {
+      // Normal case: delete by recipe_id
+      deletedCount = await embeddingService.deleteIngredientsByRecipeId(recipe_id);
+      
+      res.json({ 
+        success: true, 
+        message: `Ingredients for recipe ${recipe_id} deleted successfully`,
+        deletedCount
+      });
+    }
   } catch (error) {
     console.error('Error deleting ingredients:', error);
     res.status(500).json({ 

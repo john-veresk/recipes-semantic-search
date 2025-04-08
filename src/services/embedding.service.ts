@@ -172,7 +172,7 @@ export class EmbeddingService {
     return matches;
   }
 
-  async clearCollection(): Promise<void> {
+  async clearCollection(): Promise<number> {
     if (!this.initialized) {
       await this.initialize();
     }
@@ -181,12 +181,16 @@ export class EmbeddingService {
       // Get all ids in the collection
       const result = await this.collection.get({});
       
-      if (result.ids && result.ids.length > 0) {
+      const deletedCount = result.ids?.length || 0;
+      
+      if (deletedCount > 0) {
         // Delete all entries
         await this.collection.delete({
           ids: result.ids
         });
       }
+      
+      return deletedCount;
     } catch (error) {
       console.error('Failed to clear collection:', error);
       throw error;

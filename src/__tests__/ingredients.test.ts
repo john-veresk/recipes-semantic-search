@@ -23,6 +23,12 @@ jest.mock('../services/embedding.service', () => ({
         ingredients: 'pasta, tomato sauce, cheese, basil'
       }
     ].slice(0, limit || 3));
+  }),
+  deleteIngredientsByRecipeId: jest.fn().mockImplementation((recipe_id) => {
+    return Promise.resolve(2); // Mock deleting 2 items
+  }),
+  clearCollection: jest.fn().mockImplementation(() => {
+    return Promise.resolve(5); // Mock clearing 5 items
   })
 }));
 
@@ -113,6 +119,44 @@ describe('Ingredients API Routes', () => {
       expect(embeddingService.searchSimilarIngredients).not.toHaveBeenCalled();
     });
 
+  });
+
+  describe('DELETE /ingredients', () => {
+    it('should delete ingredients by recipe_id successfully', async () => {
+      const response = await request(app)
+        .delete('/ingredients')
+        .query({ recipe_id: 'recipe123' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toContain('recipe123 deleted successfully');
+      expect(response.body.deletedCount).toBe(2);
+      expect(embeddingService.deleteIngredientsByRecipeId).toHaveBeenCalledWith('recipe123');
+      expect(embeddingService.clearCollection).not.toHaveBeenCalled();
+    });
+
+    it('should delete all ingredients when recipe_id is "*"', async () => {
+      const response = await request(app)
+        .delete('/ingredients')
+        .query({ recipe_id: '*' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('All ingredients deleted successfully');
+      expect(response.body.deletedCount).toBe(5);
+      expect(embeddingService.clearCollection).toHaveBeenCalled();
+      expect(embeddingService.deleteIngredientsByRecipeId).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when recipe_id is missing', async () => {
+      const response = await request(app)
+        .delete('/ingredients');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('recipe_id query parameter is required');
+      expect(embeddingService.deleteIngredientsByRecipeId).not.toHaveBeenCalled();
+      expect(embeddingService.clearCollection).not.toHaveBeenCalled();
+    });
   });
 
   describe('POST /ingredients/batch', () => {

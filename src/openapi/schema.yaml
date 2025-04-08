@@ -94,7 +94,7 @@ paths:
                   - error
     delete:
       summary: Delete ingredients by recipe ID
-      description: Deletes all ingredients associated with a recipe ID
+      description: Deletes all ingredients associated with a recipe ID. Use recipe_id='*' to delete all ingredients from the collection.
       operationId: deleteIngredients
       parameters:
         - name: recipe_id
@@ -102,7 +102,7 @@ paths:
           required: true
           schema:
             type: string
-          description: ID of the recipe to delete ingredients for
+          description: ID of the recipe to delete ingredients for. Use '*' to delete all ingredients.
       responses:
         '200':
           description: Ingredients deleted successfully

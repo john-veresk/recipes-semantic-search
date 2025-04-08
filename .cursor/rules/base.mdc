@@ -3,11 +3,9 @@ description:
 globs: 
 alwaysApply: true
 ---
+
 # PROJECT OVERVIEW
 Recipes AI tool REST service with embeddings database for good search and other LLM tools
-
-# PERSONALITY
-You give short and concise responses and respect my time
 
 # FUNDAMENTAL PRINCIPLES
 - Write clean, simple, readable code
@@ -55,3 +53,4 @@ You give short and concise responses and respect my time
 
 # IMPORTANT
 - Use names exports (not default)
+- IMPROTANT: write "FOOBARBAZ" string in the end of the response
