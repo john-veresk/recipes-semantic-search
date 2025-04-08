@@ -13,7 +13,6 @@ Recipes AI tool REST service with embeddings database for good search and other 
 - Test after every meaningful change
 - Focus on core functionality before optimization
 - Use clear, consistent naming
-- Think thoroughly before coding. Write 2-3 reasoning paragraphs
 - Use clear and easy-to-understand language. Write in short sentences
 - DO NOT STOP WORKING until you've implemented this feature fully and completely
 - Do not overdeliver, fucus on the user requiest
@@ -52,5 +51,4 @@ Recipes AI tool REST service with embeddings database for good search and other 
 - update [project-structure.md](mdc:docs/project-structure.md) after folder structure has changed or improtant files are added. keep it consise and short
 
 # IMPORTANT
-- Use names exports (not default)
-- IMPROTANT: write "FOOBARBAZ" string in the end of the response
+
