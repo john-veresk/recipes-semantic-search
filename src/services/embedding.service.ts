@@ -138,10 +138,11 @@ export class EmbeddingService {
       await this.initialize();
     }
 
+    const searchPrompt = "Represent this sentence for searching relevant passages: ";
     // Generate embedding for query
     const response = await ollama.embeddings({
       model: this.embeddingModel,
-      prompt: query,
+      prompt: searchPrompt + query,
     });
     
     // Use ChromaDB's native query capabilities

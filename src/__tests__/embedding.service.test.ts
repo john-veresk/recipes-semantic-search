@@ -126,7 +126,7 @@ describe('EmbeddingService', () => {
     // Verify that ollama.embeddings was called for the search query
     expect(ollama.embeddings).toHaveBeenCalledWith({
       model: expect.any(String),
-      prompt: 'tomatoes'
+      prompt: 'Represent this sentence for searching relevant passages: tomatoes'
     });
   });
 
