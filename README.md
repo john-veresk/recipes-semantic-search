@@ -1,6 +1,6 @@
 # Recipes AI
 
-A Node.js TypeScript project for recipe management and AI integration.
+A Node.js TypeScript project for recipe semantic seatch by ingredients 
 
 ## Getting Started
 
