@@ -1,4 +1,4 @@
-# Recipes AI
+# Recipes Ingredients Search 
 
 A Node.js TypeScript project for recipe semantic seatch by ingredients 
 
